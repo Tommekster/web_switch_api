@@ -1,12 +1,27 @@
+from base64 import decode
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from .models import UserIn, UserOut
+from pydantic import ValidationError
+from jose import JWTError
+from .models import UserOut
+from .jwt import decode_access_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def decode_token(token: str) -> UserOut:
-    return UserOut(username=token, email="john@doe.com", roles=[])
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOut:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        token_data = decode_access_token(token)
+        return token_data.user
+    except JWTError:
+        raise credentials_exception
+    except ValidationError:
+        raise credentials_exception
 
 
 async def get_token_header(x_token: str = Header(...)):

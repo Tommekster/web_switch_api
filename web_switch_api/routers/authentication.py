@@ -1,11 +1,45 @@
+from typing import Union, Optional
+from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from pydantic import BaseModel
+
 from ..models import UserIn, UserOut
 from .users import fake_users_db
+from ..jwt import create_access_token
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
-def fake_hash_password(password: str) -> str:
-    return password
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def get_user(username: str) -> Optional[UserIn]:
+    user = next((x for x in fake_users_db if x.email == username), None)
+    return user
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def authenticate_user(username: str, password: str) -> Union[bool, UserOut]:
+    user = get_user(username)
+    if not user:
+        return False
+    if not verify_password(password, user.password):
+        return False
+    return UserOut(**user.dict())
 
 
 router = APIRouter(
@@ -13,21 +47,15 @@ router = APIRouter(
 )
 
 
-@router.post("/token")
+@router.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_dict = next(
-        (x for x in fake_users_db if x.email == form_data.username), None)
-    if not user_dict:
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect username or password"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    user = UserIn(**user_dict.dict())
-    hashed_password = fake_hash_password(form_data.password)
-    if not hashed_password == user.password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect username or password"
-        )
-
-    return {"access_token": user.username, "token_type": "bearer"}
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(user, access_token_expires)
+    return Token(access_token=access_token, token_type="bearer")
