@@ -4,5 +4,22 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Start server watch",
+				"type": "shell",
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"command": "venv\\scripts\\activate && uvicorn web_switch_api.main:app --reload",
+				"options": {
+					"cwd": "${workspaceFolder}"
+				}
+			}
+		]
+	}
 }
