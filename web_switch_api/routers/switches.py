@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from pydantic import BaseModel
 from ..dependencies import get_token_header
@@ -32,6 +32,9 @@ async def get_switches():
 async def update_switch(switch_id: int, update: Switch):
     switch = next((x for x in fake_switches_db if x.id == switch_id), None)
     if not switch:
-        raise HTTPException(status_code=404, detail="Switch is missing")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Switch is missing"
+        )
     switch.switched = update.switched
     return switch
