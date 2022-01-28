@@ -1,10 +1,8 @@
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from .routers import switches, captiveImage, users, authentication
 
-from .dependencies import get_token_header
-from .routers import switches, captiveImage, users
-
-app = FastAPI(dependencies=[Depends(get_token_header)])
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +15,7 @@ app.add_middleware(
 app.include_router(switches.router)
 app.include_router(captiveImage.router)
 app.include_router(users.router)
+app.include_router(authentication.router)
 
 
 @app.get("/")

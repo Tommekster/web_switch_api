@@ -1,24 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
-from pydantic import BaseModel
-from ..dependencies import get_token_header
-
-
-class UserOut(BaseModel):
-    id: int
-    username: str
-    email: str
-    roles: List[str]
-
-
-class UserIn(UserOut):
-    password: str
-
+from ..dependencies import oauth2_scheme
+from ..models import UserIn, UserOut
 
 router = APIRouter(
     prefix="/users",
     tags=["users"],
-    dependencies=[Depends(get_token_header)],
+    dependencies=[Depends(oauth2_scheme)],
     responses={404: {"description": "Not found"}},
 )
 

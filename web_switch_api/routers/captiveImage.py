@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from ..dependencies import get_token_header
+from ..dependencies import oauth2_scheme
 
 
 class CaptiveImage(BaseModel):
@@ -12,7 +12,7 @@ class CaptiveImage(BaseModel):
 router = APIRouter(
     prefix="/captiveImage",
     tags=["captiveImage"],
-    dependencies=[Depends(get_token_header)],
+    dependencies=[Depends(oauth2_scheme)],
     responses={404: {"description": "Not found"}},
 )
 
