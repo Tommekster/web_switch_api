@@ -1,4 +1,8 @@
 if __name__ == "__main__":
     import uvicorn
+    from .configuration import provider
     from .main import app
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+
+    config = provider.get_server_config()
+
+    uvicorn.run(app, host=config.host, port=config.port)

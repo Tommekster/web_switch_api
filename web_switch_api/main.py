@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import switches, captiveImage, users, authentication
-from .react import ReactStaticFiles
+from .react import ReactStaticFiles, config as react_config
 
 app = FastAPI()
 
@@ -21,7 +21,7 @@ router.include_router(authentication.router)
 
 app.include_router(router)
 
-react = ReactStaticFiles(directory='../web_switch_gui/build', html=True)
+react = ReactStaticFiles(directory=react_config.path, html=True)
 app.mount('/', react, name='whatever')
 
 

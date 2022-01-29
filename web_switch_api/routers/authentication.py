@@ -1,17 +1,13 @@
 from typing import Tuple, Union, Optional
-from datetime import timedelta
-from urllib import request
-from bcrypt import re
+import re
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from ..models import UserIn, UserOut
-from .users import fake_users_db
+from ..configuration import users, provider as config_provider
 from ..jwt import create_access_token
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 class Token(BaseModel):
@@ -29,11 +25,12 @@ class LoginRequestBody(BaseModel):
     password: str
 
 
+config = config_provider.get_authentication_config()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_user(username: str) -> Optional[UserIn]:
-    user = next((x for x in fake_users_db if x.email == username), None)
+    user = next((x for x in users.get_users() if x.email == username), None)
     return user
 
 
@@ -74,7 +71,7 @@ def login(email: str, password: str) -> Tuple[UserOut, str]:
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = config.expiration_time
     access_token = create_access_token(user, access_token_expires)
     return user, access_token
 

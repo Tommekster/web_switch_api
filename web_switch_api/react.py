@@ -1,4 +1,7 @@
 from fastapi.staticfiles import StaticFiles
+from . import configuration
+
+config = configuration.provider.get_react_app_config()
 
 
 class ReactStaticFiles(StaticFiles):
