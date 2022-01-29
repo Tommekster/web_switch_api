@@ -13,7 +13,7 @@ class TokenData(BaseModel):
     user: UserOut
     iat: datetime
     exp: datetime
-    sub: int
+    sub: str
 
 
 def create_access_token(user: UserOut, expires_delta: Optional[timedelta] = None) -> str:

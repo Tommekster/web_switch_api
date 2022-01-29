@@ -24,6 +24,18 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOut:
         raise credentials_exception
 
 
+class RequireRole:
+    def __init__(self, role: str):
+        self.role = role
+
+    def __call__(self, user: UserOut = Depends(get_current_user)):
+        if not self.role in user.roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User does not have required role %s" % self.role
+            )
+
+
 async def get_token_header(x_token: str = Header(...)):
     if x_token != "todo-replace-with-jwt-token":
         raise HTTPException(

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from pydantic import BaseModel
-from ..dependencies import oauth2_scheme
+from ..dependencies import RequireRole
 
 
 class Switch(BaseModel):
@@ -10,10 +10,12 @@ class Switch(BaseModel):
     switched: bool
 
 
+require_role = RequireRole("ROLE_SWITCH")
+
 router = APIRouter(
     prefix="/switches",
     tags=["switches"],
-    dependencies=[Depends(oauth2_scheme)],
+    dependencies=[Depends(require_role)],
     responses={404: {"description": "Not found"}},
 )
 
