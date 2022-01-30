@@ -84,10 +84,10 @@ class ConfigurationProvider:
 
 class User(BaseModel):
     id: int
-    username: str
     email: str
-    roles: List[str]
     password: str
+    username: str
+    roles: List[str]
 
 
 class UsersRepository:
@@ -99,8 +99,14 @@ class UsersRepository:
     def get_users(self) -> List[User]:
         pattern = re.compile(r"User_(?P<id>\d+)")
         users = [
-            User(id=int(m.group("id")), **self.config[m.string])
-            for m in (pattern.match(s) for s in self.config.keys())
+            User(
+                id=int(m.group("id")),
+                email=v["email"],
+                password=v["password"],
+                username=v["username"],
+                roles=v["roles"].split(),
+            )
+            for m, v in ((pattern.match(s), self.config[s]) for s in self.config.keys())
             if m
         ]
         return users
